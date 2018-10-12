@@ -12,29 +12,38 @@ Loading data and CARET library.
 ```{r}
 setwd("~/Dropbox/DS-repo/PML")
 
-train <- read.csv("pml-training.csv")
-test <- read.csv("pml-testing.csv")
+mydata <- read.csv("pml-training.csv")
 
 library(caret)
 ```
 
-Cleaning the data, by removing the columns that in the test data are fully NA's.
+Cleaning the data, by removing the NA's columns.
 
 ```{r}
-col_remove <- c(12:36,50:59,69:83,87:101,103:112,125:139,141:150)
+col_remove <- c(2:7,12:36,50:59,69:83,87:101,103:112,125:139,141:150) ## TO BE IMPROVED
 
-train_short <- train[,-col_remove]
-test_short <- test[,-col_remove]
+mydata <- mydata[,-col_remove]
 ```
 
-Training two different models, one using "rpart" and one "rf" methods, and taking predictions based on the test set.
+Splitting the data in a training set and in a cross validation set.
 
 ```{r}
-mod1 <- train(classe~.,method="rpart",train_short,na.action=na.exclude)
-##mod2 <- train(classe~.,method="rf",train_short,na.action=na.exclude)
-
-pre1 <- predict(mod1,test)
-##pre2 <- predict(mod2,test)
+inT <- createDataPartition(y=mydata$classe,p=0.75,list=FALSE)
+tr <- mydata[inT,]
+cv <- mydata[-inT,]
 ```
 
-Unluckily, in both models, the 20 test cases result all in a classe A.
+Building a model based on the traing set, using rpart as algorithm. 
+
+```{r}
+mod_a <- train(classe~.,data=tr,method="rpart")
+
+```
+
+Predict the output for the cross validation set, and show the relative confusion matrix, with accuracy evaluation.
+
+```{r}
+pre_a <- predict(mod_a,newdata=cv)
+
+confusionMatrix(pre_a,cv$classe)
+```
